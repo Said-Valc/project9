@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .wrapper {
+            width: 1200px;
+            border: 1px solid #000;
+            margin: auto;
+            background-color: silver;
+        }
+
+        .todo {
+            width: 900px;
+            height: 800px;
+            border: 1px solid #000;
+            margin: auto;
+            background-color: beige;
+            margin-top: 40px;
+        }
+
+        .list {
+            width: 90%;
+            height: 100px;
+            border-bottom: 1px solid #000;
+            margin-top: 10px;
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .dop {
+            width: 900px;
+            height: 100px;
+            border: 1px solid #000;
+            margin: auto;
+            margin-top: 50px;
+            background-color: beige;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .win {
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="wrapper">
+        <div class="dop">
+            <input type="text" id="inp">
+            <button id="add" onclick="addTask()">Добавить</button>
+        </div>
+        <div class="todo">
+
+        </div>
+    </div>
+
+
+    <script>
+        const todo = document.querySelector('.todo')
+        async function getAll() {
+            const response = fetch('http://localhost:3000/api/tasks')
+            response.then(data => data.json()).then((data) => {
+                data.forEach(element => {
+                    todo.innerHTML += `
+                    <div class="list">
+                        <h3>#${element.id}</h3>
+                        <h3  ${element.completed ? "class='win'" : ""}>${element.title}</h3>
+                        <h3><input type="checkbox" onclick="win(event)" ${element.completed ? "checked" : ""}></h3>
+                    </div>
+                `
+                });
+            })
+        }
+
+        function win(event) {
+            const id = +event.target.parentNode.previousElementSibling.previousElementSibling.textContent.replace('#', '');
+            const text = event.target.parentNode.previousElementSibling;
+            if (event.target.checked !== true) {
+                text.classList.remove('win')
+                putTask(id, { title: text.textContent, completed: false })
+            } else {
+                text.classList.add('win')
+                putTask(id, { title: text.textContent, completed: true })
+
+            }
+        }
+
+        function addTask() {
+            const inp = document.querySelector('#inp').value
+            fetch(`http://localhost:3000/api/tasks/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title: inp })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка при обновлении');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Задача обновлена:', data);
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+        }
+
+        function putTask(id, obj) {
+            fetch(`http://localhost:3000/api/tasks/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(obj)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка при обновлении');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Задача обновлена:', data);
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+        }
+
+        getAll()
+    </script>
+</body>
+
+</html>
